@@ -1,20 +1,32 @@
 import pymumble_py3 as pymumble
 import re
 import sys
+import xml.etree.ElementTree as xml
 
+connect_regex = r'(?:<p>)?connect\s*(\S*)\s*;\s*password\s*(\S*)(?:</p>)?'
+xml_wrapper = '<?xml version="1.0"?><message>{}</message>'
+_example_connect = "connect eepily.cool:2345; password cool"
 
 def recive_message(message, mumble):
     user = mumble.users[message.actor]
     channel = mumble.channels[user['channel_id']]
-    m = re.match(r'.*connect\s*(\S*)\s*;\s*password\s*(\S*)<*', message.message)
-    response = ''
-    if m is not None:
-        url = 'steam://connect/' + m.group(1)
-        if m.group(2) is not None:
-            url += '/' + m.group(2)
-        response = '<a href={0}>{0}</a>'.format(url)
-    else:
-        response = "sorry i don't recognise that format"
+    print(user, message, channel)
+
+    response = "sorry i don't recognise that format"
+
+    m_xml = xml.fromstring(xml_wrapper.format(message.message))
+    for tag in m_xml.iter('*'):
+        text = tag.text
+        if text is not None:
+            m = re.match(connect_regex, text)
+            if m is not None:
+                url = 'steam://connect/' + m.group(1)
+                if m.group(2) is not None:
+                    url += '/' + m.group(2)
+                print("url : ", url)
+                response = '<a href={0}>{0}</a>'.format(url)
+
+    print(response)
 
     channel.send_text_message(response)
 
