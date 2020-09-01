@@ -4,9 +4,8 @@ import re
 import sys
 import xml.etree.ElementTree as xml
 
-connect_regex = r'(?:<p>)?connect\s*(\S*)\s*;\s*password\s*(\S*)(?:</p>)?'
+connect_regex = r'connect\s*(\S*)\s*;\s*password\s*(\S*)'
 xml_wrapper = '<?xml version="1.0"?><message>{}</message>'
-run = True
 
 def recive_message(message, mumble):
     user = mumble.users[message.actor]
@@ -26,6 +25,7 @@ def recive_message(message, mumble):
                     url += '/' + m.group(2)
                 print("url : ", url)
                 response = '<a href={0}>{0}</a>'.format(url)
+                mumble.users.myself.comment("Last connect: " + response)
                 break
             else:
                 if text.startswith('!join'):
@@ -36,17 +36,28 @@ def recive_message(message, mumble):
     print("output", response)
     channel.send_text_message(response)
 
-def main():
-    mumble = pymumble.Mumble('localhost', 'tf2-connect')
+def main(args):
+    mumble = pymumble.Mumble(args[1],
+                             'tf2-connect',
+                             port=int(args[2]),
+                             password=args[3])
     mumble.start()
     mumble.is_ready()
     mumble.channels.find_by_name('Root').move_in()
     mumble.callbacks.add_callback('text_received',
                                   lambda m: recive_message(m, mumble))
 
-    while run:
-        time.sleep(1)
+    while True:
+        time.sleep(10)
+
 
 if __name__ == '__main__':
-    main()
+    if (len(sys.argv) != 4) or (sys.argv[1] == '-h'):
+        print('''mumble bot which parses a connect string and responds in the channel with a steam link
+./mumble-tf2-connect.py <ip> <port> <password>
+
+source: https://github.com/t-taylor/mumble-tf2-connect-bot''')
+        sys.exit(0)
+    print('started connect bot')
+    main(sys.argv)
     sys.exit(0)
