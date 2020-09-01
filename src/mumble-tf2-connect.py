@@ -20,9 +20,7 @@ def recive_message(message, mumble):
         if text is not None:
             m = re.match(connect_regex, text)
             if m is not None:
-                url = 'steam://connect/' + m.group(1)
-                if m.group(2) is not None:
-                    url += '/' + m.group(2)
+                url = 'steam://connect/' + m.group(1) + '/' + m.group(2)
                 print("url : ", url)
                 response = '<a href={0}>{0}</a>'.format(url)
                 mumble.users.myself.comment("Last connect: " + response)
@@ -34,7 +32,8 @@ def recive_message(message, mumble):
                     break
 
     print("output", response)
-    channel.send_text_message(response)
+    for user in channel.get_users():
+        user.send_text_message(response)
 
 def main(args):
     mumble = pymumble.Mumble(args[1],
