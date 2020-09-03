@@ -42,7 +42,6 @@ def main(args):
                              password=args[3])
     mumble.start()
     mumble.is_ready()
-    mumble.channels.find_by_name('Root').move_in()
     mumble.callbacks.add_callback('text_received',
                                   lambda m: recive_message(m, mumble))
 
